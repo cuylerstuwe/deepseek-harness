@@ -1,0 +1,33 @@
+#!/bin/sh
+set -eu
+
+resolve_link() {
+  target=$1
+  while [ -L "$target" ]; do
+    target_dir=$(CDPATH= cd -P -- "$(dirname -- "$target")" && pwd)
+    link=$(readlink "$target")
+    case "$link" in
+      /*) target=$link ;;
+      *) target=$target_dir/$link ;;
+    esac
+  done
+  target_dir=$(CDPATH= cd -P -- "$(dirname -- "$target")" && pwd)
+  printf '%s/%s\n' "$target_dir" "$(basename -- "$target")"
+}
+
+self=$(resolve_link "$0")
+script_dir=$(dirname -- "$self")
+repo_root=$(CDPATH= cd -P -- "$script_dir/../../.." && pwd)
+cli="$repo_root/apps/cli/lib/bin.js"
+
+if [ ! -f "$cli" ]; then
+  echo "dsh: built CLI not found at $cli; run $repo_root/deploy/agentbox/install.sh" >&2
+  exit 1
+fi
+
+export DSH_TELEMETRY_DISABLED=1
+export DSH_TELEMETRY_MODE=DISABLED
+export GX10_GLM_API_KEY=${GX10_GLM_API_KEY:-local-no-auth}
+export MTPLX_LOCAL_API_KEY=${MTPLX_LOCAL_API_KEY:-local-no-auth}
+
+exec node "$cli" "$@"

@@ -153,6 +153,9 @@
     "dsh": "node --import tsx/esm apps/cli/src/bin.ts",
     "demo:ptc": "node scripts/demo-ptc.mjs",
     "demo:inspector": "node --import tsx/esm apps/cli/src/bin.ts web --patch ./packages/experimental/inspector/cordis.source.patch.yml",
+    "agentbox:configure": "node deploy/agentbox/configure.mjs",
+    "agentbox:install": "sh deploy/agentbox/install.sh",
+    "agentbox:verify": "node deploy/agentbox/verify.mjs",
     "mock:llm": "node --import tsx packages/test-support/llm-mock-server/src/bin.ts",
     "dev:web": "tsx scripts/dev-web.ts --poll",
     "postinstall": "node scripts/install-lefthook.mjs"

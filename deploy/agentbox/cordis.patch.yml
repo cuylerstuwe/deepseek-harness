@@ -1,0 +1,26 @@
+# Local-model-only deployment policy. This patch keeps DeepSeek-hosted model,
+# search, and telemetry services out of every base-backed profile while
+# retaining provider-neutral HTTP fetching.
+- id: llm-deepseek
+  disabled: true
+
+- id: llm-pi-ai
+  config:
+    excludedCatalogProviders:
+      - deepseek
+
+- id: web
+  config:
+    searchProvider: local-search-disabled
+    fetchProvider: http
+
+- id: web-search-deepseek
+  disabled: true
+
+- id: tool-web
+  config:
+    search: false
+    fetch: true
+
+- id: session-telemetry-otel
+  disabled: true
