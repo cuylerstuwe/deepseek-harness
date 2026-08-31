@@ -54,14 +54,23 @@ const settings = load(readFileSync(settingsPath, 'utf8'))
 const providers = settings?.['llm-pi-ai']?.providers
 requireCondition(providers !== null && typeof providers === 'object', 'llm-pi-ai providers are missing')
 const expected = new Map([
-  ['upstairs-q27-quality', 'qwen3.8-27b-q27-quality'],
-  ['mtplx-flash-next', 'Qwen3.8-Flash-Next-MTPLX-Optimized-Speed'],
-  ['gx10-glm', 'glm-5.3-flash'],
+  ['upstairs-q27-quality', {
+    configured: 'qwen3.8-27b-q27-quality',
+    advertised: 'qwen38-27b-mtp-q6k',
+  }],
+  ['mtplx-flash-next', {
+    configured: 'Qwen3.8-Flash-Next-MTPLX-Optimized-Speed',
+    advertised: 'Qwen3.8-Flash-Next-MTPLX-Optimized-Speed',
+  }],
+  ['gx10-glm', {
+    configured: 'glm-5.3-flash',
+    advertised: 'glm-5.3-flash',
+  }],
 ])
 for (const [provider, model] of expected) {
   const profile = providers[provider]
   requireCondition(profile !== null && typeof profile === 'object', `provider ${provider} is missing`)
-  requireCondition(profile.models?.some(candidate => candidate.id === model), `model ${provider}/${model} is missing`)
+  requireCondition(profile.models?.some(candidate => candidate.id === model.configured), `model ${provider}/${model.configured} is missing`)
 }
 
 if (values.network) {
@@ -76,8 +85,8 @@ if (values.network) {
     })
     requireCondition(response.ok, `${provider} /models returned HTTP ${response.status}`)
     const body = await response.json()
-    requireCondition(Array.isArray(body.data) && body.data.some(candidate => candidate.id === model), `${provider} did not advertise ${model}`)
-    process.stdout.write(`Reachable: ${provider}/${model}\n`)
+    requireCondition(Array.isArray(body.data) && body.data.some(candidate => candidate.id === model.advertised), `${provider} did not advertise ${model.advertised}`)
+    process.stdout.write(`Reachable: ${provider}/${model.configured} (advertised as ${model.advertised})\n`)
   }
 }
 
