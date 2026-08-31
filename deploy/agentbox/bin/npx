@@ -1,0 +1,58 @@
+#!/bin/sh
+set -eu
+
+resolve_link() {
+  target=$1
+  while [ -L "$target" ]; do
+    target_dir=$(CDPATH= cd -P -- "$(dirname -- "$target")" && pwd)
+    link=$(readlink "$target")
+    case "$link" in
+      /*) target=$link ;;
+      *) target=$target_dir/$link ;;
+    esac
+  done
+  target_dir=$(CDPATH= cd -P -- "$(dirname -- "$target")" && pwd)
+  printf '%s/%s\n' "$target_dir" "$(basename -- "$target")"
+}
+
+self=$(resolve_link "$0")
+script_dir=$(dirname -- "$self")
+
+case "${1-}" in
+  @deepseek-ai/dsh|@deepseek-ai/dsh@*)
+    shift
+    exec "$script_dir/dsh" "$@"
+    ;;
+esac
+
+if { [ "${1-}" = "-y" ] || [ "${1-}" = "--yes" ]; }; then
+  case "${2-}" in
+    @deepseek-ai/dsh|@deepseek-ai/dsh@*)
+      shift 2
+      exec "$script_dir/dsh" "$@"
+      ;;
+  esac
+fi
+
+if [ -n "${DSH_REAL_NPX:-}" ]; then
+  real_npx=$(resolve_link "$DSH_REAL_NPX")
+  if [ "$real_npx" != "$self" ]; then
+    exec "$DSH_REAL_NPX" "$@"
+  fi
+fi
+
+old_ifs=$IFS
+IFS=:
+for path_dir in $PATH; do
+  [ -n "$path_dir" ] || path_dir=.
+  candidate=$path_dir/npx
+  [ -x "$candidate" ] || continue
+  candidate_real=$(resolve_link "$candidate")
+  [ "$candidate_real" = "$self" ] && continue
+  IFS=$old_ifs
+  exec "$candidate" "$@"
+done
+IFS=$old_ifs
+
+echo 'npx: no underlying npx executable found; set DSH_REAL_NPX to its absolute path' >&2
+exit 127

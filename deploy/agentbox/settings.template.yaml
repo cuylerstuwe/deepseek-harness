@@ -1,0 +1,112 @@
+agent-default-model:
+  provider: @@DSH_DEFAULT_PROVIDER@@
+  model: @@DSH_DEFAULT_MODEL@@
+
+llm-pi-ai:
+  providers:
+    upstairs-q27-quality:
+      displayName: Qwen 3.8 27B Quality (q27 on Ubuntu RTX 5090)
+      apiKeyEnv: UPSTAIRS_QWEN38_API_KEY
+      api: openai-completions
+      baseURL: @@UPSTAIRS_QWEN38_BASE_URL@@
+      compat:
+        supportsStore: false
+        supportsDeveloperRole: false
+        supportsReasoningEffort: true
+        supportsUsageInStreaming: false
+        supportsFinishReason: true
+        maxTokensField: max_tokens
+        thinkingFormat: openai
+        supportsStrictMode: false
+        supportsLongCacheRetention: false
+      models:
+        - id: qwen3.8-27b-q27-quality
+          name: Qwen 3.8 27B Quality — q27 Q6K + FP16 KV
+          contextWindow: 98304
+          maxTokens: 32768
+          input: [ text ]
+          reasoningEfforts:
+            off:
+            low: low
+            medium: medium
+            high: xhigh
+
+    mtplx-flash-next:
+      displayName: Qwen 3.8 Flash Next (MTPLX Optimized)
+      apiKeyEnv: MTPLX_LOCAL_API_KEY
+      api: openai-completions
+      baseURL: @@MTPLX_FLASH_NEXT_BASE_URL@@
+      compat:
+        supportsStore: false
+        supportsDeveloperRole: false
+        supportsReasoningEffort: true
+        supportsUsageInStreaming: true
+        supportsFinishReason: true
+        maxTokensField: max_tokens
+        requiresToolResultName: false
+        requiresAssistantAfterToolResult: false
+        requiresThinkingAsText: false
+        requiresReasoningContentOnAssistantMessages: false
+        thinkingFormat: openai
+        supportsStrictMode: false
+        supportsLongCacheRetention: false
+      models:
+        - id: Qwen3.8-Flash-Next-MTPLX-Optimized-Speed
+          name: Qwen 3.8 Flash Next — MTPLX Optimized
+          contextWindow: 262144
+          maxTokens: 32768
+          input: [ text, image ]
+          reasoningEfforts:
+            off:
+            low: low
+            medium: medium
+            high: xhigh
+            xhigh: xhigh
+            max: xhigh
+
+    gx10-glm:
+      displayName: GLM 5.3 Flash (dual GX10)
+      apiKeyEnv: GX10_GLM_API_KEY
+      api: openai-completions
+      baseURL: @@GX10_GLM_BASE_URL@@
+      compat:
+        supportsStore: false
+        supportsDeveloperRole: false
+        supportsReasoningEffort: false
+        supportsUsageInStreaming: true
+        supportsFinishReason: true
+        maxTokensField: max_tokens
+        requiresToolResultName: false
+        requiresAssistantAfterToolResult: false
+        requiresThinkingAsText: false
+        requiresReasoningContentOnAssistantMessages: false
+        thinkingFormat: chat-template
+        chatTemplateKwargs:
+          reasoning_effort:
+            $var: thinking.effort
+            omitWhenOff: true
+          enable_thinking:
+            $var: thinking.enabled
+        supportsThinkingTokenBudget: true
+        supportsStrictMode: false
+        supportsLongCacheRetention: false
+      models:
+        - id: glm-5.3-flash
+          name: GLM 5.3 Flash — NVFP4 + DFlash2 TP=2
+          contextWindow: 131072
+          maxTokens: 32768
+          input: [ text, image ]
+          reasoningEfforts:
+            low: low
+            high: high
+            max: max
+
+subagent-model-selection:
+  enabled: true
+  allowedModels:
+    - provider: upstairs-q27-quality
+      model: qwen3.8-27b-q27-quality
+    - provider: mtplx-flash-next
+      model: Qwen3.8-Flash-Next-MTPLX-Optimized-Speed
+    - provider: gx10-glm
+      model: glm-5.3-flash
