@@ -220,6 +220,8 @@ export interface ResolvedPiAiProviderProfile
 
 /** Plugin configuration: the provider routes this instance owns. */
 export interface Config {
+  /** Catalog providers omitted from discovery and sign-in; explicit routes remain available. */
+  excludedCatalogProviders: string[]
   /**
    * pi-ai provider routes, keyed by provider. An empty (or omitted) dict is
    * the dormant settings-driven posture: the adapter mounts with no routes
@@ -350,6 +352,7 @@ const profile = z.object({
 
 /** Runtime schema for {@link Config}. */
 export const Config = z.object({
+  excludedCatalogProviders: z.array(z.string()).default([]),
   providers: z.dict(profile).default({}).volatile(),
 })
 

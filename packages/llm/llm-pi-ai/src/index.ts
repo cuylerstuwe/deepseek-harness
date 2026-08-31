@@ -128,6 +128,7 @@ function registrationFacts(profiles: ReadonlyMap<string, ResolvedPiAiProviderPro
 function directoryEntries(
   profiles: ReadonlyMap<string, ResolvedPiAiProviderProfile>,
   settingsNs: string,
+  excludedProviders: readonly string[],
 ): LlmConfigurableProvider[] {
   const entries = new Map<string, LlmConfigurableProvider>()
   const declare = (provider: string, displayName: string, error?: string): void => {
@@ -145,7 +146,10 @@ function directoryEntries(
       ...error === undefined ? {} : { error },
     })
   }
-  for (const provider of catalogProviderIds()) declare(provider, provider)
+  const excluded = new Set(excludedProviders)
+  for (const provider of catalogProviderIds()) {
+    if (!excluded.has(provider)) declare(provider, provider)
+  }
   for (const [provider, profile] of profiles) declare(provider, profile.displayName, profile.catalogError)
   return [...entries.values()]
 }
@@ -236,7 +240,7 @@ export function apply(ctx: Context, config: Config): void {
   // Scoped to the authorization seam rather than injected outright, because a
   // composition without it (headless, ACP) simply has no surface to sign in
   // from, while everything else this plugin does still works.
-  ctx.inject(['authorization'], (authorized) => { registerPiAiFlows(authorized, auth) })
+  ctx.inject(['authorization'], (authorized) => { registerPiAiFlows(authorized, auth, config.excludedCatalogProviders) })
   // The full installed catalog is configurable from the moment the plugin
   // mounts — dormant or not — so configuration surfaces can offer every
   // pi-ai provider before any route exists. Hand-declared routes join it as
@@ -244,7 +248,7 @@ export function apply(ctx: Context, config: Config): void {
   let directory: DirectoryRegistrationHandle | undefined
   let directoryFacts: unknown
   const ensureDirectory = (): void => {
-    const entries = directoryEntries(profiles(), settingsNs)
+    const entries = directoryEntries(profiles(), settingsNs, config.excludedCatalogProviders)
     if (deepEqualJson(entries, directoryFacts)) return
     // Atomic replace, never dispose-then-register: a route another adapter
     // family already declares (a profile keyed `deepseek-official`) would
