@@ -25,7 +25,7 @@ kind: "package-reference"
 <a id="use-this-package"></a>
 ## 使用本包
 
-当组合需要通过 pi-ai 的提供方目录、或通过 pi-ai 已安装目录未描述的网关路由模型请求时挂载本插件。`providers` 字典就是整个配置面：每个键都是请求用 `GenerateOptions.provider` 选择的提供方路由名。
+当组合需要通过 pi-ai 的提供方目录、或通过 pi-ai 已安装目录未描述的网关路由模型请求时挂载本插件。`providers` 中的每个键都是请求用 `GenerateOptions.provider` 选择的提供方路由名；`excludedCatalogProviders` 会从配置界面移除不需要的休眠目录选项，但不会隐藏已明确配置的路由。
 
 ### 何时选择
 
@@ -38,6 +38,8 @@ kind: "package-reference"
 ```yaml
 - name: '@deepseek-ai/dsh-llm-pi-ai'
   config:
+    excludedCatalogProviders:
+      - deepseek
     providers:
       openai:
         apiKeyEnv: OPENAI_API_KEY
@@ -69,6 +71,8 @@ kind: "package-reference"
               off:
               high: high
 ```
+
+`excludedCatalogProviders` 默认为空列表。它会隐藏提供方的休眠新增选项与登录流程，但不影响请求路由：如果 `providers` 明确声明同名路由，该已配置路由仍保持可见、可用，便于操作员管理或移除。
 
 | 字段 | 默认值 | 含义 |
 |---|---|---|
@@ -102,7 +106,7 @@ profile 的 `models` 列表会替换而非扩展路由的已安装目录；每�
 
 ### 运行时更改配置
 
-profile 通过可选 settings seam 每次操作重新读取：base 与用户的 `llm-pi-ai:` 设置分节按提供方合并，因此用户可以新增路由、覆盖组合路由的一个字段或把路由指向另一个代理，全部在下一个请求生效、无需重启。适配器无法服务的分节会在写入处被拒绝——`settings.mutate` 回答 `settings-rejected`——之后失效的已存储分节会保留 namespace 最后有效值。当路由集合或某路由的重试策略变化时，插件会原子地重新注册：冲突路由会让此前路由继续服务。
+profile 与目录排除项通过可选 settings seam 重新读取：base 与用户的 `llm-pi-ai:` 设置分节按提供方合并，因此用户可以新增路由、覆盖组合路由的一个字段、把路由指向另一个代理，或更改休眠目录的可见性，全部无需重启。适配器无法服务的分节会在写入处被拒绝——`settings.mutate` 回答 `settings-rejected`——之后失效的已存储分节会保留 namespace 最后有效值。当路由集合或某路由的重试策略变化时，插件会原子地重新注册：冲突路由会让此前路由继续服务。
 
 ### 从端点发现模型
 
@@ -143,7 +147,7 @@ pi-ai 不提供的路由需要 `api`、`baseURL` 与非空 `models` 列表；无
 
 ### 注册与目录
 
-插件会在可配置提供方目录中声明它能认证的每个已安装目录提供方，并加入当前 profile 声明的每条路由，因此配置界面可以在任何路由存在之前提供完整目录。每个条目都携带 `declared`——pi-ai 是否在该键下不提供任何内容——因为只有适配器能区分手工声明路由与收窄目录路由。路由注册具有原子性：与其他适配器冲突的候选集合会让此前路由继续服务。零路由的裸挂载即休眠姿态：settings 分节提供 profile 前不注册任何内容，分节清空时路由随之消失。
+插件会在可配置提供方目录中声明它能认证且未被排除的每个已安装目录提供方，并加入当前 profile 声明的每条路由，因此配置界面可以在任何路由存在之前提供获准的目录。已明确配置的路由优先于 `excludedCatalogProviders`，从而保留其管理界面。每个条目都携带 `declared`——pi-ai 是否在该键下不提供任何内容——因为只有适配器能区分手工声明路由与收窄目录路由。路由注册具有原子性：与其他适配器冲突的候选集合会让此前路由继续服务。零路由的裸挂载即休眠姿态：settings 分节提供 profile 前不注册任何内容，分节清空时路由随之消失。
 
 ### 回放与词汇
 

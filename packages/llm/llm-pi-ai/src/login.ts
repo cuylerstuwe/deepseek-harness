@@ -111,14 +111,21 @@ function restate(prompt: AuthPrompt): AuthorizationPrompt {
 /**
  * Register one authorization flow per installed provider that ships a login.
  *
- * Registration is unconditional on configuration: a provider has to be signed
- * into before a route for it is worth adding, so the flow exists from the
- * moment the plugin mounts rather than appearing once a profile does.
+ * Registration precedes provider profiles: a provider has to be signed into
+ * before a route for it is worth adding, so every non-excluded flow exists from
+ * the moment the plugin mounts rather than appearing once a profile does.
  * @param ctx - the plugin context carrying `ctx.authorization`.
  * @param auth - the injectables every collection here is built with.
+ * @param excludedProviders - catalog providers whose sign-in should not be offered.
  */
-export function registerPiAiFlows(ctx: Context, auth: PiAiAuthInjection): void {
+export function registerPiAiFlows(
+  ctx: Context,
+  auth: PiAiAuthInjection,
+  excludedProviders: readonly string[] = [],
+): void {
+  const excluded = new Set(excludedProviders)
   for (const providerId of catalogProviderIds()) {
+    if (excluded.has(providerId)) continue
     const provider = catalogProvider(providerId)
     const [first, ...rest] = loginMethods(provider)
     /* v8 ignore next 3 -- every id here names an installed provider and every

@@ -26,13 +26,17 @@ const CODEX = recordKeyFor('openai-codex')
 const dirs: string[] = []
 
 /** A context with the record store, the seam, and every pi-ai login flow. */
-async function harness(): Promise<Context> {
+async function harness(excludedProviders: readonly string[] = []): Promise<Context> {
   const dir = await mkdtemp(join(tmpdir(), 'dsh-pi-login-'))
   dirs.push(dir)
   const ctx = new Context()
   await ctx.plugin(LocalCredentialProvider, { path: join(dir, '.credentials.yaml'), watch: false })
   await ctx.plugin(AuthorizationService)
-  registerPiAiFlows(ctx, { credentials: credentialStoreFrom(ctx), authContext: authContextFrom(ctx) })
+  registerPiAiFlows(
+    ctx,
+    { credentials: credentialStoreFrom(ctx), authContext: authContextFrom(ctx) },
+    excludedProviders,
+  )
   return ctx
 }
 
@@ -96,6 +100,14 @@ describe('pi-ai login flows', () => {
     // through its own prompt rather than leaving it to the settings form.
     expect(offered.find(entry => entry.key === recordKeyFor('deepseek'))?.methods.map(one => one.id))
       .toEqual(['api-key'])
+  })
+
+  it('does not offer sign-in for an excluded catalog provider', async () => {
+    const ctx = await harness(['deepseek'])
+    const offered = ctx.authorization.list().map(entry => entry.key)
+
+    expect(offered).not.toContain(recordKeyFor('deepseek'))
+    expect(offered).toContain(CODEX)
   })
 
   it('runs the pi-ai auth type the chosen method names', async () => {

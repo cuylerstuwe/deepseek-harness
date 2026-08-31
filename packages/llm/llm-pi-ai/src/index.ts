@@ -13,6 +13,8 @@
  * - id: llm
  *   name: '@deepseek-ai/dsh-llm-pi-ai'
  *   config:
+ *     excludedCatalogProviders:
+ *       - deepseek
  *     providers:
  *       # Catalog route: everything but the credential comes from pi-ai.
  *       openai:
@@ -110,17 +112,22 @@ function registrationFacts(profiles: ReadonlyMap<string, ResolvedPiAiProviderPro
 }
 
 /**
- * The configurable-provider directory: every installed catalog route, plus
- * every route the current profiles declare. A hand-declared route has no
- * catalog entry, so without this union it would have no settings address and
- * configuration surfaces could neither show nor edit it.
+ * The configurable-provider directory: every non-excluded installed catalog
+ * route, plus every route the current profiles declare. A hand-declared route
+ * has no catalog entry, so without this union it would have no settings address
+ * and configuration surfaces could neither show nor edit it. Profiles win over
+ * exclusions so a deployment never loses the management surface for a route it
+ * already configured.
  * @param profiles - the currently resolved provider profiles.
+ * @param excludedCatalogProviders - dormant catalog routes to omit.
  * @returns the directory entries in catalog order, declared routes last.
  */
 function directoryEntries(
   profiles: ReadonlyMap<string, ResolvedPiAiProviderProfile>,
+  excludedCatalogProviders: readonly string[],
 ): LlmConfigurableProvider[] {
   const catalog = new Set(catalogProviderIds())
+  const excluded = new Set(excludedCatalogProviders)
   const entries = new Map<string, LlmConfigurableProvider>()
   const declare = (provider: string, displayName: string): void => {
     entries.set(provider, {
@@ -134,7 +141,9 @@ function directoryEntries(
       declared: !catalog.has(provider),
     })
   }
-  for (const provider of catalog) declare(provider, provider)
+  for (const provider of catalog) {
+    if (!excluded.has(provider)) declare(provider, provider)
+  }
   for (const [provider, profile] of profiles) declare(provider, profile.displayName)
   return [...entries.values()]
 }
@@ -216,15 +225,18 @@ export function apply(ctx: Context, config: Config): void {
   // Scoped to the authorization seam rather than injected outright, because a
   // composition without it (headless, ACP) simply has no surface to sign in
   // from, while everything else this plugin does still works.
-  ctx.inject(['authorization'], (authorized) => { registerPiAiFlows(authorized, auth) })
-  // The full installed catalog is configurable from the moment the plugin
-  // mounts — dormant or not — so configuration surfaces can offer every
-  // pi-ai provider before any route exists. Hand-declared routes join it as
-  // profiles appear, and leave with them.
+  ctx.inject(['authorization'], (authorized) => {
+    registerPiAiFlows(authorized, auth, config.excludedCatalogProviders ?? [])
+  })
+  // The permitted installed catalog is configurable from the moment the plugin
+  // mounts — dormant or not — so configuration surfaces can offer its routes
+  // before any profile exists. Hand-declared routes join it as profiles appear,
+  // and leave with them.
   let directory: DirectoryRegistrationHandle | undefined
   let directoryFacts: unknown
   const ensureDirectory = (): void => {
-    const entries = directoryEntries(profiles())
+    const raw = current()
+    const entries = directoryEntries(profiles(), raw.excludedCatalogProviders ?? [])
     if (deepEqualJson(entries, directoryFacts)) return
     // Atomic replace, never dispose-then-register: a route another adapter
     // family already declares (a profile keyed `deepseek-official`) would

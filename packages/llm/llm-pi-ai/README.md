@@ -25,7 +25,7 @@ English | [中文](README.zh.md)
 <a id="use-this-package"></a>
 ## Use this package
 
-Mount this plugin when a composition routes model requests through pi-ai's provider catalogs or through gateways that pi-ai's installed catalog does not describe. The `providers` dictionary is the whole configuration surface: each key is the provider route name a request selects with `GenerateOptions.provider`.
+Mount this plugin when a composition routes model requests through pi-ai's provider catalogs or through gateways that pi-ai's installed catalog does not describe. Each key in `providers` is the provider route name a request selects with `GenerateOptions.provider`; `excludedCatalogProviders` removes unwanted dormant catalog choices from configuration surfaces without hiding an explicitly configured route.
 
 ### When to choose it
 
@@ -38,6 +38,8 @@ Each profile may set a `retryPolicy`; omission uses normal mode with five retrie
 ```yaml
 - name: '@deepseek-ai/dsh-llm-pi-ai'
   config:
+    excludedCatalogProviders:
+      - deepseek
     providers:
       openai:
         apiKeyEnv: OPENAI_API_KEY
@@ -69,6 +71,8 @@ Each profile may set a `retryPolicy`; omission uses normal mode with five retrie
               off:
               high: high
 ```
+
+`excludedCatalogProviders` defaults to an empty list. It suppresses the provider's dormant addition choice and sign-in flow, but not request routing: if `providers` explicitly declares the same route, that configured route remains visible and usable so an operator can manage or remove it.
 
 | Field | Default | Meaning |
 |---|---|---|
@@ -102,7 +106,7 @@ A profile's `models` list replaces the route's installed catalog rather than ext
 
 ### Change configuration at runtime
 
-Profiles are re-read once per operation through the optional settings seam: the base and the user's `llm-pi-ai:` settings section merge per provider, so a user can add a route, override one field of a composition route, or point a route at another proxy, all effective on the next request with no restart. A section the adapter could not serve is refused where it is written — `settings.mutate` answers `settings-rejected` — and a stored section that later fails keeps the namespace's last good value. When the route set or a route's retry policy changes, the plugin re-registers atomically: a conflicting route leaves the previous routes serving.
+Profiles and catalog exclusions are re-read through the optional settings seam: the base and the user's `llm-pi-ai:` settings section merge per provider, so a user can add a route, override one field of a composition route, point a route at another proxy, or change dormant catalog visibility without a restart. A section the adapter could not serve is refused where it is written — `settings.mutate` answers `settings-rejected` — and a stored section that later fails keeps the namespace's last good value. When the route set or a route's retry policy changes, the plugin re-registers atomically: a conflicting route leaves the previous routes serving.
 
 ### Discover models from endpoints
 
@@ -143,7 +147,7 @@ The adapter is built on immutable snapshots and per-operation resolution. Each o
 
 ### Registration and directory
 
-The plugin declares every installed catalog provider it can authenticate in the configurable-provider directory, joined with every route the current profiles declare, so configuration surfaces can offer the full catalog before any route exists. Each entry carries `declared` — whether pi-ai ships nothing under that key — because only the adapter can distinguish a hand-declared route from a narrowed catalog route. Route registration is atomic: a candidate set that collides with another adapter leaves the previous routes serving. A bare mount with zero routes is the dormant posture: nothing registers until a settings section supplies profiles, and routes drop when it empties.
+The plugin declares every non-excluded installed catalog provider it can authenticate in the configurable-provider directory and joins every route the current profiles declare, so configuration surfaces can offer the permitted catalog before any route exists. An explicitly configured route wins over `excludedCatalogProviders`, preserving its management surface. Each entry carries `declared` — whether pi-ai ships nothing under that key — because only the adapter can distinguish a hand-declared route from a narrowed catalog route. Route registration is atomic: a candidate set that collides with another adapter leaves the previous routes serving. A bare mount with zero routes is the dormant posture: nothing registers until a settings section supplies profiles, and routes drop when it empties.
 
 ### Replay and vocabulary
 

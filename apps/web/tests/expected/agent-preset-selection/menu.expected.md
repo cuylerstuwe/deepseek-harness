@@ -1,6 +1,6 @@
 - menu:
-  - menuitem "Standard mode Full coding agent with file editing, shell, file and web search, skills, planning, goals, subagents, and workflows.":
-    - text: Standard mode Full coding agent with file editing, shell, file and web search, skills, planning, goals, subagents, and workflows.
+  - menuitem "Standard mode Full coding agent with file editing, shell, file and web access, skills, planning, goals, subagents, and workflows.":
+    - text: Standard mode Full coding agent with file editing, shell, file and web access, skills, planning, goals, subagents, and workflows.
     - img
   - menuitem "PTC mode All Standard mode capabilities, with tools exposed through the PTC mode SDK so the model can combine multi-step operations in one TypeScript program."
   - menuitem "Minimal mode Two-tool coding agent with persistent bash and str_replace_editor."

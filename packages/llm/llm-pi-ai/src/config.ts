@@ -215,6 +215,13 @@ export interface ResolvedPiAiProviderProfile
 /** Plugin configuration: the provider routes this instance owns. */
 export interface Config {
   /**
+   * Installed pi-ai providers omitted from the dormant configurable-provider
+   * catalog and mount-time sign-in flows. An explicitly configured profile
+   * with the same route remains available so an existing deployment can still
+   * manage and use it.
+   */
+  excludedCatalogProviders?: string[]
+  /**
    * pi-ai provider routes, keyed by provider. An empty (or omitted) dict is
    * the dormant settings-driven posture: the adapter mounts with no routes
    * and registers them the moment a settings section supplies profiles.
@@ -338,6 +345,7 @@ const profile = z.object({
 
 /** Runtime schema for {@link Config}. */
 export const Config: z<Config> = z.object({
+  excludedCatalogProviders: z.array(z.string()).default([]),
   providers: z.dict(profile).default({}),
 })
 

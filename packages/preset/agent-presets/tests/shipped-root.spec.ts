@@ -97,7 +97,7 @@ describe('the shipped preset root', () => {
     expect(minimal?.path.startsWith(SYSTEM_ROOT)).toBe(true)
   })
 
-  it('enables web_fetch in each tool-bearing Web app preset', async () => {
+  it('enables web_fetch without web_search in each tool-bearing Web app preset', async () => {
     for (const id of ['cordis', 'ptc', 'standard']) {
       const source = await readFile(join(SHIPPED_PRESET_ROOT, id, 'agent.cordis.yml'), 'utf8')
       const entries: unknown = yaml.load(source, { schema: entryListSchema })
@@ -105,10 +105,12 @@ describe('the shipped preset root', () => {
       const toolWeb: unknown = entries.find((entry: unknown) =>
         typeof entry === 'object' && entry !== null && 'id' in entry && entry.id === 'tool-web')
       if (typeof toolWeb !== 'object' || toolWeb === null || !('config' in toolWeb)
-        || typeof toolWeb.config !== 'object' || toolWeb.config === null || !('fetch' in toolWeb.config)) {
-        throw new TypeError(`${id} preset must configure tool-web.fetch`)
+        || typeof toolWeb.config !== 'object' || toolWeb.config === null
+        || !('fetch' in toolWeb.config) || !('search' in toolWeb.config)) {
+        throw new TypeError(`${id} preset must configure tool-web.fetch and tool-web.search`)
       }
       expect(toolWeb.config.fetch, id).toBe(true)
+      expect(toolWeb.config.search, id).toBe(false)
     }
   })
 })

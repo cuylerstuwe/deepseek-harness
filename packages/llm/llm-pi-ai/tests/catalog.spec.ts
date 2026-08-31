@@ -1142,6 +1142,26 @@ describe('resolution snapshots', () => {
 })
 
 describe('configurable-provider directory', () => {
+  it('omits excluded dormant catalog routes while preserving configured ones', async () => {
+    const dormant = await harness({ excludedCatalogProviders: ['deepseek'] })
+    const dormantOffered = dormant.llm.listConfigurableProviders().map(entry => entry.provider)
+
+    expect(dormantOffered).not.toContain('deepseek')
+    expect(dormantOffered).toContain('openai')
+
+    const configured = await harness({
+      excludedCatalogProviders: ['deepseek'],
+      providers: { deepseek: {} },
+    })
+    expect(configured.llm.listConfigurableProviders()).toContainEqual({
+      provider: 'deepseek',
+      displayName: 'deepseek',
+      settingsNs: 'llm-pi-ai',
+      settingsPath: ['providers', 'deepseek'],
+      declared: false,
+    })
+  })
+
   it('keeps the previous directory when a route collides with another adapter family', async () => {
     const dir = await home()
     const ctx = await bootWithSettings(dir, {})
