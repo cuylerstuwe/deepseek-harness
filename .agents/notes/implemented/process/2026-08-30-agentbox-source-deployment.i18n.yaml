@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for 2026-08-30-agentbox-source-deployment.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write .agents/notes/implemented/process/2026-08-30-agentbox-source-deployment.md
-2026-08-30-agentbox-source-deployment.md: 8dccf00c6377e6a2c79d08879a7931a37426a12a
-2026-08-30-agentbox-source-deployment.zh.md: faef9a8b21ba9b3235387bf8e256140204e7e490
+/agent-note-agentbox-source-deployment:
+  en: f9d3a72d21020952
+  zh: a2a56ccbe447627e
+/agent-note-agentbox-source-deployment/problem:
+  en: af7a1e7331917c8a
+  zh: 604fcaff94bb60b8
+/agent-note-agentbox-source-deployment/decision:
+  en: 01b34dbcfc67eadf
+  zh: 3da2d6b06632521b
+/agent-note-agentbox-source-deployment/alternatives-considered:
+  en: a16d1ec25c6f21b1
+  zh: be92636f24aaedba
+/agent-note-agentbox-source-deployment/consequences:
+  en: 7f5ee1a9cd921052
+  zh: c48ecf64c024e864

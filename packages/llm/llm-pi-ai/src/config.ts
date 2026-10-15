@@ -231,7 +231,7 @@ export interface Config {
 }
 
 /** Plain options accepted by the provider resolver. */
-export type Options = { [K in keyof Config]?: Config[K] extends Volatile<infer T> ? T : never }
+export type Options = { [K in keyof Config]?: Config[K] extends Volatile<infer T> ? T : Config[K] }
 
 const thinkingBudgets = z.object({
   minimal: z.number(),

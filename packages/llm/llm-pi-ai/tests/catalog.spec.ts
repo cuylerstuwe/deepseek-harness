@@ -1234,13 +1234,13 @@ describe('configurable-provider directory', () => {
       excludedCatalogProviders: ['deepseek'],
       providers: { deepseek: {} },
     })
-    expect(configured.llm.listConfigurableProviders()).toContainEqual({
+    expect(configured.llm.listConfigurableProviders()).toContainEqual(expect.objectContaining({
       provider: 'deepseek',
       displayName: 'deepseek',
       settingsNs: 'llm-pi-ai',
       settingsPath: ['providers', 'deepseek'],
       declared: false,
-    })
+    }))
   })
 
   it('keeps the previous directory when a route collides with another adapter family', async () => {

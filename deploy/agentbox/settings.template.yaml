@@ -110,3 +110,8 @@ subagent-model-selection:
       model: Qwen3.8-Flash-Next-MTPLX-Optimized-Speed
     - provider: gx10-glm
       model: glm-5.3-flash
+
+# Apply the fetch-only policy to preset-owned tool instances as well.
+tool-web:
+  search: false
+  fetch: true

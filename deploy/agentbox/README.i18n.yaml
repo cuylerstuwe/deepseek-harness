@@ -1,6 +1,19 @@
-# Bilingual-pair consistency record (docs/i18n/README.md): the git blob hash of each
-# side as of the last confirmed-consistent state. Both languages carry equal authority;
-# after editing either side, bring the other along and re-record with:
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
 #   pnpm run verify-translation-pairing --write deploy/agentbox/README.md
-README.md: 001cac9be2f1bac310696971225da3e2ba5d93bc
-README.zh.md: 6657f58500d587228952375c511be66a2028f9e3
+/agentbox-source-deployment:
+  en: ba02fbf4ab3b32f8
+  zh: 900600166dbac142
+/agentbox-source-deployment/install:
+  en: 94224d580813be9b
+  zh: 98afb82971855e79
+/agentbox-source-deployment/launch-and-verify:
+  en: f646ea621138d072
+  zh: 6182aab986027ade
+/agentbox-source-deployment/container-networking:
+  en: 8bc95be2618e8206
+  zh: ccb84b10da874de8
+/agentbox-source-deployment/updating:
+  en: acf1a0c8fa36745c
+  zh: 95823feb8528f7e1

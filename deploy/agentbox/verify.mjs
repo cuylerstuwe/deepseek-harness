@@ -44,6 +44,7 @@ function row(id) {
 }
 
 requireCondition(/disabled: true/u.test(row('llm-deepseek')), 'DeepSeek LLM adapter is enabled')
+requireCondition(/disabled: true/u.test(row('llm-deepseek-account')), 'DeepSeek account adapter is enabled')
 requireCondition(/excludedCatalogProviders:\n\s+- deepseek/u.test(row('llm-pi-ai')), 'DeepSeek remains in the pi-ai catalog')
 requireCondition(/searchProvider: local-search-disabled/u.test(row('web')), 'DeepSeek search routing is not replaced')
 requireCondition(/disabled: true/u.test(row('web-search-deepseek')), 'DeepSeek search provider is enabled')
