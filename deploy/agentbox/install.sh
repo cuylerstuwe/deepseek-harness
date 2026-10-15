@@ -36,7 +36,7 @@ else
   echo "agentbox install: preserving existing $policy_target; merge or replace it with $script_dir/cordis.patch.yml" >&2
 fi
 
-settings_target=$dsh_home/settings.yaml
+settings_target=$dsh_home/profiles/headless/cordis.patch.yml
 if [ ! -e "$settings_target" ] || [ "${DSH_AGENTBOX_FORCE_CONFIG:-0}" = 1 ]; then
   force_flag=
   [ "${DSH_AGENTBOX_FORCE_CONFIG:-0}" = 1 ] && force_flag=--force

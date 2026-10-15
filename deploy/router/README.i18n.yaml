@@ -1,0 +1,16 @@
+# Bilingual-pair consistency record for README.md (docs/i18n/README.md): per heading
+# section, a hash of its English and Chinese blocks outside code blocks and generated regions.
+# After editing either side, bring the other along and re-record with:
+#   pnpm run verify-translation-pairing --write deploy/router/README.md
+/pi-router-configuration:
+  en: 3eaed1a3f4d4321e
+  zh: cbe144f590fae32d
+/pi-router-configuration/synchronize:
+  en: 736829c73dfcbabf
+  zh: b4813ec77375319b
+/pi-router-configuration/request-behavior:
+  en: 22928d912df2745a
+  zh: bf65f8e6eed16c02
+/pi-router-configuration/verification:
+  en: b0b7fe9707d69ae1
+  zh: 665cc0fc59eb31b0

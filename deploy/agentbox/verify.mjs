@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /** Verify the built CLI, local-only composition, rendered settings, and optional model reachability. */
 
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { parseArgs } from 'node:util'
 import { load } from 'js-yaml'
+import { readYaml } from '../shared/profile-settings.mjs'
 
 const { values } = parseArgs({
   options: { network: { type: 'boolean', default: false } },
@@ -15,7 +16,7 @@ const { values } = parseArgs({
 const repoRoot = resolve(import.meta.dirname, '../..')
 const cli = join(repoRoot, 'apps/cli/lib/bin.js')
 const dshHome = resolve(process.env.DSH_HOME || join(homedir(), '.dsh'))
-const settingsPath = join(dshHome, 'settings.yaml')
+const settingsPath = join(dshHome, 'profiles/headless/cordis.patch.yml')
 
 function requireCondition(condition, message) {
   if (!condition) throw new Error(`agentbox verify: ${message}`)
@@ -51,8 +52,13 @@ requireCondition(/disabled: true/u.test(row('web-search-deepseek')), 'DeepSeek s
 requireCondition(/search: false/u.test(row('tool-web')) && /fetch: true/u.test(row('tool-web')), 'web tools are not fetch-only')
 requireCondition(/disabled: true/u.test(row('session-telemetry-otel')), 'DeepSeek telemetry exporter is enabled')
 
-const settings = load(readFileSync(settingsPath, 'utf8'))
-const providers = settings?.['llm-pi-ai']?.providers
+const providers = load(row('llm-pi-ai'))[0]?.config?.providers
+const webRows = readYaml(join(dshHome, 'profiles/web/cordis.patch.yml'))
+for (const preset of ['standard', 'ptc', 'cordis']) {
+  const config = webRows.find(entry => entry.id === `preset-${preset}`)?.config
+  const tools = config?.plugins?.flatMap(entry => Array.isArray(entry.config) ? entry.config : [entry]).filter(entry => entry.id === 'tool-web')
+  requireCondition(tools?.length > 0 && tools.every(entry => entry.config.search === false && entry.config.fetch === true), `${preset} web tools are not fetch-only`)
+}
 requireCondition(providers !== null && typeof providers === 'object', 'llm-pi-ai providers are missing')
 const expected = new Map([
   ['upstairs-q27-quality', {

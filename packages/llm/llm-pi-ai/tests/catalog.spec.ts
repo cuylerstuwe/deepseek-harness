@@ -71,6 +71,43 @@ async function harness(config: LlmPiAi.Options): Promise<Context> {
 }
 
 describe('hand-declared providers', () => {
+  it('sends declared sampling and native reasoning effort to a custom router', async () => {
+    const server = await mockServer([{ events: textEvents }])
+    const ctx = await harness(gateway(`${server.url}/v1`, {
+      headers: { 'X-LLM-Priority': 'foreground' },
+      models: [{
+        id: 'acme-large', contextWindow: 1048576, maxTokens: 131072,
+        reasoningEfforts: { high: 'high', max: 'max' },
+        samplingParams: { temperature: 1, top_p: 0.95, top_k: 20, min_p: 0.05 },
+        compat: {
+          supportsDeveloperRole: false, supportsReasoningEffort: false,
+          maxTokensField: 'max_tokens', thinkingFormat: 'chat-template',
+          supportsThinkingTokenBudget: false,
+          chatTemplateKwargs: {
+            enable_thinking: { $var: 'thinking.enabled' },
+            reasoning_effort: { $var: 'thinking.effort', omitWhenOff: true },
+          },
+        },
+      }],
+    }))
+    try {
+      await assemble(ctx, {
+        provider: 'acme-gateway', model: 'acme-large', maxTokens: 131072,
+        reasoningEffort: ReasoningEffortId('max'),
+        messages: [createUserMessage({ content: [{ type: 'text', text: 'hi' }], source: { kind: 'test' } })],
+      })
+      expect(server.requests[0]).toMatchObject({
+        model: 'acme-large', max_tokens: 131072,
+        temperature: 1, top_p: 0.95, top_k: 20, min_p: 0.05,
+        chat_template_kwargs: { enable_thinking: true, reasoning_effort: 'max' },
+      })
+      expect(server.requests[0]).not.toHaveProperty('thinking_token_budget')
+      expect(server.headers[0]?.['x-llm-priority']).toBe('foreground')
+    } finally {
+      await ctx.fiber.dispose()
+    }
+  })
+
   it('serves a route pi-ai has never heard of from its own declaration', async () => {
     const server = await mockServer([{ events: textEvents }])
     const ctx = await harness(gateway(`${server.url}/v1`))

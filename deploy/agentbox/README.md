@@ -15,9 +15,9 @@ corepack enable
 ./deploy/agentbox/install.sh
 ```
 
-The installer runs `pnpm install --frozen-lockfile` and `pnpm run build`, renders `$DSH_HOME/settings.yaml` with mode `0600`, links the local-only policy into `$DSH_HOME/cordis.patch.yml`, and links the wrappers into `${DSH_AGENTBOX_BIN_DIR:-$HOME/.local/bin}` when those names are free. It preserves existing configuration and wrapper files; set `DSH_AGENTBOX_FORCE_CONFIG=1` only when replacing the generated settings is intentional.
+The installer runs `pnpm install --frozen-lockfile` and `pnpm run build`, writes settings into `profiles/web/cordis.patch.yml` and `profiles/headless/cordis.patch.yml` with mode `0600`, applies the local-only policy in `$DSH_HOME/cordis.patch.yml`, and links the wrappers into `${DSH_AGENTBOX_BIN_DIR:-$HOME/.local/bin}` when those names are free. It migrates legacy `settings.yaml` with private backups and preserves existing profile settings and wrapper files; set `DSH_AGENTBOX_FORCE_CONFIG=1` only when replacing the generated settings is intentional.
 
-Persist `$DSH_HOME` as an Agentbox volume. Keep the checkout available at the same container path because the policy and executable wrappers intentionally link back to it.
+Persist `$DSH_HOME` as an Agentbox volume. Keep the checkout available at the same container path because executable wrappers link back to it.
 
 ## Launch and verify
 
@@ -50,4 +50,4 @@ The MTPLX endpoint is a session-scoped service on the personal M5 and may disapp
 
 ## Updating
 
-Pull a reviewed commit, rerun `./deploy/agentbox/install.sh`, and run the verification command. Existing settings remain in place unless forced, while the linked policy and wrappers follow the updated checkout automatically.
+Pull a reviewed commit, rerun `./deploy/agentbox/install.sh`, and run the verification command. Existing settings remain in place unless forced, while executable wrappers follow the updated checkout automatically. Use `DSH_AGENTBOX_FORCE_CONFIG=1` to refresh the generated policy and profile settings with private backups.

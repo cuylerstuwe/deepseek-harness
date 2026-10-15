@@ -15,9 +15,9 @@ corepack enable
 ./deploy/agentbox/install.sh
 ```
 
-安装器运行 `pnpm install --frozen-lockfile` 和 `pnpm run build`，以 `0600` 模式渲染 `$DSH_HOME/settings.yaml`，把仅使用本地模型的策略链接到 `$DSH_HOME/cordis.patch.yml`，并在对应名称空闲时把包装器链接到 `${DSH_AGENTBOX_BIN_DIR:-$HOME/.local/bin}`。它保留已有配置和包装器文件；只有在有意替换生成的设置时才设置 `DSH_AGENTBOX_FORCE_CONFIG=1`。
+安装器运行 `pnpm install --frozen-lockfile` 和 `pnpm run build`，以 `0600` 模式将设置写入 `profiles/web/cordis.patch.yml` 和 `profiles/headless/cordis.patch.yml`，在以下文件中应用仅使用本地模型的策略： `$DSH_HOME/cordis.patch.yml`，并在对应名称空闲时把包装器链接到 `${DSH_AGENTBOX_BIN_DIR:-$HOME/.local/bin}`。它通过私有备份迁移旧版 `settings.yaml`，并保留已有配置档设置和包装器文件；只有在有意替换生成的设置时才设置 `DSH_AGENTBOX_FORCE_CONFIG=1`。
 
-把 `$DSH_HOME` 作为 Agentbox 卷持久化。检出目录必须继续位于相同的容器路径，因为策略和可执行包装器会有意链接回该目录。
+把 `$DSH_HOME` 作为 Agentbox 卷持久化。检出目录必须继续位于相同的容器路径，因为可执行包装器链接回该目录。
 
 ## 启动与验证
 
@@ -50,4 +50,4 @@ MTPLX 端点是个人 M5 上的会话级服务，可能会在该笔记本睡眠�
 
 ## 更新
 
-拉取经过审查的提交，重新运行 `./deploy/agentbox/install.sh`，然后运行验证命令。除非强制替换，否则已有设置会被保留；链接的策略和包装器会自动跟随更新后的检出目录。
+拉取经过审查的提交，重新运行 `./deploy/agentbox/install.sh`，然后运行验证命令。除非强制替换，否则已有设置会被保留；可执行包装器会自动跟随更新后的检出目录。使用 `DSH_AGENTBOX_FORCE_CONFIG=1` 可刷新生成的策略和配置档设置，同时保留私有备份。

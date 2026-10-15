@@ -314,6 +314,7 @@ const modelFields = {
   // `{}`, and absent must stay distinguishable — it means "inherit the
   // installed catalog's capability", while `false` disables reasoning.
   reasoningEfforts: z.union([z.const(false), reasoningEfforts]),
+  samplingParams: z.dict(z.number()),
   compat: compatProfile,
 }
 

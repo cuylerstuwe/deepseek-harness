@@ -5,6 +5,8 @@ import { chmodSync, existsSync, mkdirSync, readFileSync, renameSync, rmSync, wri
 import { homedir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 import { parseArgs } from 'node:util'
+import { load } from 'js-yaml'
+import { readYaml, profileOutputs, writeOutputs } from '../shared/profile-settings.mjs'
 
 const { values } = parseArgs({
   options: {
@@ -86,7 +88,16 @@ if (values.stdout) {
 }
 
 const dshHome = resolve(process.env.DSH_HOME || join(homedir(), '.dsh'))
-const outputPath = resolve(values.output || join(dshHome, 'settings.yaml'))
+if (values.output === undefined) {
+  const current = join(dshHome, 'profiles/headless/cordis.patch.yml')
+  if (existsSync(current) && !values.force) throw new Error(`agentbox configure: ${current} exists; pass --force to replace generated settings`)
+  const settings = { ...readYaml(join(dshHome, 'settings.yaml')), ...load(rendered) }
+  const policy = readYaml(join(dshHome, 'cordis.patch.yml')) ?? readYaml(join(import.meta.dirname, 'cordis.patch.yml'))
+  const backup = writeOutputs(dshHome, profileOutputs(dshHome, settings, policy))
+  process.stdout.write(`Wrote profile settings under ${dshHome}; private backups: ${backup}\n`)
+  process.exit(0)
+}
+const outputPath = resolve(values.output)
 if (existsSync(outputPath) && !values.force) {
   throw new Error(`agentbox configure: ${outputPath} exists; pass --force to replace it`)
 }
